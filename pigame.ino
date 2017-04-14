@@ -45,7 +45,7 @@ String pi =
 "5950244594553469083026425223082533446850352619311881710100031378387528865875332083814206171776691473"
 "035982534904287554687311595628638823537875937519577818577805321712268066130019278766111959092164201989";
 String buffr = "";
-const int buffrer_size = 13;
+const int buffr_size = 13;
 int n = 0; // position
 char key = {};
 int score = 0;
@@ -98,7 +98,7 @@ void showStats()
   display.println(buffr);
   // current position
   display.setCursor(0,25);
-  display.print(String(n-1));
+  display.print(String(score));
   // best position
   display.setCursor(120,25);
   display.print(String(high_score));
@@ -133,7 +133,7 @@ void gameStartScreen()
     display.clearDisplay();
     display.display();
     delay(250);
-    type(48,12,"GO!",2);
+    type(48,10,"GO!",2);
     delay(250);
   }
   showStats();
@@ -168,27 +168,25 @@ void loop()
         // got it right
         if (key == pi[n]) {
           
-          // update digits to be displayed
+          // append next digit to display
           buffr += pi[n];
           
-          // increase position
-          n += 1;
-          
-          // resize displayed digits-string to keep visible/on one line
-          if (n > buffrer_size) {
+          // remove first digit from display
+          if (n > buffr_size) {
             buffr.remove(0,1);
           } else {
-            // if at the beginning, add decimal point to buffrer
-            if (n == 1) {
-              buffr += pi[n];
+            // if at the beginning, add decimal point to buffer
+            if (n == 0) {
+              buffr += pi[n+1];
               n += 1;
             }
           }
           
-          // increase score
-          score += 1;
+          // increase position
+          n += 1;
           
-          // update high score
+          // update scores
+          score += 1;
           high_score = std::max(score, high_score);
           
           showStats();
