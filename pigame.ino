@@ -1,14 +1,9 @@
-/*  Keypadtest.pde
+/*  pigame.ino
  *
- *  Demonstrate the simplest use of the  keypad library.
- *
- *  The first step is to connect your keypad to the
- *  Arduino  using the pin numbers listed below in
- *  rowPins[] and colPins[]. If you want to use different
- *  pins then  you  can  change  the  numbers below to
- *  match your setup.
+ *  Game to memorize tpi's decimal expansion
  *
  */
+
 #include <Keypad.h>
 #include <Arduino.h>
 #include <SPI.h>
@@ -54,31 +49,8 @@ int n = 0; // position
 char key = {};
 int high_score = 0;
 
-//string substr(n,k) {
-//  return
-//}
-
-int show(String text, int wait = 0) {
-  display.clearDisplay();
-  display.setTextSize(1);
-  display.setCursor(0,0);
-  display.setTextColor(WHITE);
-  for (int i = 0; i < text.length(); i++) {
-    display.print(text[i]);
-  }
-  display.display();
-  delay(wait);
-  return 1;
-}
-
-void initGame() {
-  buff = "";
-  show("\nGET READY!", 1000);
-  show("\nEnter digits!");
-  n = 0;
-}
-
-void ledAlert(int gap = 100, int count = 1) {
+void ledAlert(int gap = 100, int count = 1)
+{
   for (int i = 0; i < count; i++) {
     if (i % 2 == 0) {
       digitalWrite(redledpin, HIGH);
@@ -90,6 +62,67 @@ void ledAlert(int gap = 100, int count = 1) {
   digitalWrite(redledpin, HIGH);
 }
 
+int show(int x, int y, String text, int size = 1)
+{
+  display.setTextSize(size);
+  display.setCursor(x,y);
+  display.setTextColor(WHITE);
+  for (int i = 0; i < text.length(); i++) {
+    display.print(text[i]);
+  }
+  display.display();
+  return 1;
+}
+
+int type(int x, int y, String text, int size = 1)
+{
+  display.setTextSize(size);
+  display.setCursor(x,y);
+  display.setTextColor(WHITE);
+  for (int i = 0; i < text.length(); i++) {
+    display.print(text[i]);
+    display.display();
+    delay(10);
+  }
+  display.display();
+  return 1;
+}
+
+void gameInit()
+{
+  buff = "";
+  display.clearDisplay();
+  type(0,0,"Get ready...");
+  delay(500);
+  type(0,12,"GO!",2);
+  n = 0;
+}
+
+void gameOverScreen()
+{
+  ledAlert(50,10);
+  display.clearDisplay();
+  type(0,0,String(n-1),3);
+  delay(250);
+  type(20,0,"GAME OVER!");
+  delay(250);
+  type(20,11,"Next digit: " + pi.substring(n,n+1));
+  delay(250);
+  type(20,22,"High score: " + String(high_score));
+
+  delay(2000);
+  
+//  bool waiting = true;
+//  while (waiting) {
+//    key = kpd.getKey();
+//    if (key) {
+//      if (key == '*') {
+//        waiting = false;
+//      }
+//    }
+//  }
+}
+
 void setup()
 {
   pinMode(0,OUTPUT);
@@ -98,7 +131,7 @@ void setup()
   Serial.begin(9600);
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   
-  initGame();
+  gameInit();
 }
 
 void loop()
@@ -106,39 +139,46 @@ void loop()
   display.clearDisplay();
   key = kpd.getKey();
   if (key) {
-    if (key == pi[n]){
-      buff += pi[n];
-      n += 1;
-      // resize string of characters displayed
-      if (n > 20) {
-        buff = pi.substring(n - 20, n);
-      } else {
-        // if at the beginning, add decimal point to buffer
-        if (n == 1) {
+    switch (key) {
+      case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
+        // got it right
+        if (key == pi[n]){
           buff += pi[n];
           n += 1;
+          // resize string of characters displayed
+          if (n > 20) {
+            buff = pi.substring(n - 20, n);
+          } else {
+            // if at the beginning, add decimal point to buffer
+            if (n == 1) {
+              buff += pi[n];
+              n += 1;
+            }
+          }
+          
+          display.setTextSize(1);
+          display.setCursor(20,0);
+          display.println(buff);
+          display.display();
+          
+          delay(25);
+        // got it wrong
+        } else {
+          if (n-1 > high_score) {
+            high_score = n-1;
+          }
+                    
+          gameOverScreen();
+          delay(1500);
+          gameInit();
         }
-      }
-      
-      Serial.print(buff);
-      show("\n" + buff, 0);
-      
-      delay(25);
-    } else {
-      if (n-1 > high_score) {
-        high_score = n-1;
-      }
-      
-      // alert error
-      ledAlert(50,10);
-      
-      // Serial note
-      Serial.println("Nope! " + pi.substring(n,n+1) + ".\nScore: " + (n-1) + "\nHigh score:" + high_score);
-      
-      // OLED note
-      show("Nope! " + pi.substring(n,n+1) + ".\nScore: " + (n-1) + "\nHi score: " + high_score, 2000);
-      // Start over
-      initGame();
+        break;
+      case '*':
+        break;
+      case '#':
+        break;
+      default:
+        delay(1);
     }
   }
 }
