@@ -100,7 +100,7 @@ void showStats()
   display.setCursor(0,25);
   display.print(String(score));
   // best position
-  display.setCursor(120,25);
+  display.setCursor(128 - String(high_score).length()*7,0);
   display.print(String(high_score));
   display.display();
 }
