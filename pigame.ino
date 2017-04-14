@@ -45,6 +45,7 @@ String pi =
 "5950244594553469083026425223082533446850352619311881710100031378387528865875332083814206171776691473"
 "035982534904287554687311595628638823537875937519577818577805321712268066130019278766111959092164201989";
 String buff = "";
+const int buffer_size = 13;
 int n = 0; // position
 char key = {};
 int high_score = 0;
@@ -82,45 +83,50 @@ int type(int x, int y, String text, int size = 1)
   for (int i = 0; i < text.length(); i++) {
     display.print(text[i]);
     display.display();
-    delay(10);
+    delay(5);
   }
   display.display();
   return 1;
-}
-
-void gameInit()
-{
-  buff = "";
-  display.clearDisplay();
-  type(0,0,"Get ready...");
-  delay(500);
-  type(0,12,"GO!",2);
-  n = 0;
 }
 
 void gameOverScreen()
 {
   ledAlert(50,10);
   display.clearDisplay();
-  type(0,0,String(n-1),3);
+  type(40,0,"GAME",2);
+  type(40,15,"OVER",2);
+  delay(1000);
+  display.clearDisplay();
+  type(0,0,"Next digit: " + pi.substring(n,n+1));
   delay(250);
-  type(20,0,"GAME OVER!");
+  type(0,12,"Score: " + String(n-1));
   delay(250);
-  type(20,11,"Next digit: " + pi.substring(n,n+1));
-  delay(250);
-  type(20,22,"High score: " + String(high_score));
+  type(0,24,"High score: " + String(high_score));
 
-  delay(2000);
+//  key = kpd.getKey();
   
-//  bool waiting = true;
-//  while (waiting) {
-//    key = kpd.getKey();
-//    if (key) {
-//      if (key == '*') {
-//        waiting = false;
-//      }
-//    }
-//  }
+}
+
+void gameStartScreen()
+{
+  display.clearDisplay();
+  type(32,12,"Get ready...");
+  delay(500);
+  display.clearDisplay();
+  for(int i = 0; i < 3; i++) {
+    display.clearDisplay();
+    display.display();
+    delay(250);
+    type(48,12,"GO!",2);
+    delay(250);
+  }
+}
+
+void gameInit()
+{
+  buff = "";
+  n = 0;
+  gameStartScreen();
 }
 
 void setup()
@@ -145,9 +151,13 @@ void loop()
         if (key == pi[n]){
           buff += pi[n];
           n += 1;
+          // update high score
+          if (n-1 > high_score) {
+            high_score = n-1;
+          }
           // resize string of characters displayed
-          if (n > 20) {
-            buff = pi.substring(n - 20, n);
+          if (n > buffer_size) {
+            buff = pi.substring(n - buffer_size, n);
           } else {
             // if at the beginning, add decimal point to buffer
             if (n == 1) {
@@ -157,17 +167,20 @@ void loop()
           }
           
           display.setTextSize(1);
-          display.setCursor(20,0);
+          // progress
+          display.setCursor(24,8);
           display.println(buff);
+          // current position
+          display.setCursor(0,25);
+          display.print(String(n-1));
+          // best position
+          display.setCursor(120,25);
+          display.print(String(high_score));
           display.display();
           
           delay(25);
         // got it wrong
         } else {
-          if (n-1 > high_score) {
-            high_score = n-1;
-          }
-                    
           gameOverScreen();
           delay(1500);
           gameInit();
