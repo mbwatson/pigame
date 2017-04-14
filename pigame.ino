@@ -44,10 +44,11 @@ String pi =
 "3542019956112129021960864034418159813629774771309960518707211349999998372978049951059731732816096318"
 "5950244594553469083026425223082533446850352619311881710100031378387528865875332083814206171776691473"
 "035982534904287554687311595628638823537875937519577818577805321712268066130019278766111959092164201989";
-String buff = "";
-const int buffer_size = 13;
+String buffr = "";
+const int buffrer_size = 13;
 int n = 0; // position
 char key = {};
+int score = 0;
 int high_score = 0;
 
 void ledAlert(int gap = 100, int count = 1)
@@ -89,6 +90,21 @@ int type(int x, int y, String text, int size = 1)
   return 1;
 }
 
+void showStats()
+{
+  display.setTextSize(1);
+  // progress
+  display.setCursor(24,8);
+  display.println(buffr);
+  // current position
+  display.setCursor(0,25);
+  display.print(String(n-1));
+  // best position
+  display.setCursor(120,25);
+  display.print(String(high_score));
+  display.display();
+}
+
 void gameOverScreen()
 {
   ledAlert(50,10);
@@ -120,12 +136,14 @@ void gameStartScreen()
     type(48,12,"GO!",2);
     delay(250);
   }
+  showStats();
 }
 
 void gameInit()
 {
-  buff = "";
+  buffr = "";
   n = 0;
+  score = 0;
   gameStartScreen();
 }
 
@@ -148,35 +166,32 @@ void loop()
     switch (key) {
       case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
         // got it right
-        if (key == pi[n]){
-          buff += pi[n];
+        if (key == pi[n]) {
+          
+          // update digits to be displayed
+          buffr += pi[n];
+          
+          // increase position
           n += 1;
-          // update high score
-          if (n-1 > high_score) {
-            high_score = n-1;
-          }
-          // resize string of characters displayed
-          if (n > buffer_size) {
-            buff = pi.substring(n - buffer_size, n);
+          
+          // resize displayed digits-string to keep visible/on one line
+          if (n > buffrer_size) {
+            buffr.remove(0,1);
           } else {
-            // if at the beginning, add decimal point to buffer
+            // if at the beginning, add decimal point to buffrer
             if (n == 1) {
-              buff += pi[n];
+              buffr += pi[n];
               n += 1;
             }
           }
           
-          display.setTextSize(1);
-          // progress
-          display.setCursor(24,8);
-          display.println(buff);
-          // current position
-          display.setCursor(0,25);
-          display.print(String(n-1));
-          // best position
-          display.setCursor(120,25);
-          display.print(String(high_score));
-          display.display();
+          // increase score
+          score += 1;
+          
+          // update high score
+          high_score = std::max(score, high_score);
+          
+          showStats();
           
           delay(25);
         // got it wrong
